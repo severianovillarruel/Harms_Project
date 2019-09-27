@@ -53,9 +53,8 @@ x_test=np.concatenate((x_test_bound,x_test_unbound), axis=0)
 
 print(len(test_index))
 for i in test_index:
-    _xtrain_bound=np.delete(_xtrain_bound,i,0)
-    _xtrain_unbound=np.delete(_xtrain_unbound,i,0)
-
+    x_train_bound=np.delete(_xtrain_bound,i,0)
+    x_train_unbound=np.delete(_xtrain_unbound,i,0)
 
 
 INPUT_FILE .close()
