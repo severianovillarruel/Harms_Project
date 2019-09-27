@@ -46,17 +46,15 @@ _xtrain_unbound = np.array(_xtrain_unbound)
 
 # print(len(_xtrain_bound))
 
-test_index=[]
-test_index=random.sample(range(len(_xtrain_bound)), len(_xtrain_bound))
-
+test_index=random.sample(range(len(_xtrain_bound)), (len(_xtrain_bound)//4))
 x_test_bound=_xtrain_bound[test_index]
 x_test_unbound=_xtrain_unbound[test_index]
 x_test=np.concatenate((x_test_bound,x_test_unbound), axis=0)
 
-print(test_index[:15])
-# for i in test_index:
-#     _xtrain_bound=np.delete(_xtrain_bound,i,0)
-#     _xtrain_unbound=np.delete(_xtrain_unbound,i,0)
+print(len(test_index))
+for i in test_index:
+    _xtrain_bound=np.delete(_xtrain_bound,i,0)
+    _xtrain_unbound=np.delete(_xtrain_unbound,i,0)
 
 
 
