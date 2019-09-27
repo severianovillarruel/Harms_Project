@@ -11,17 +11,26 @@ _ytrain_bound = []
 _xtrain_unbound = []
 _ytrain_unbound = []
 
+data= []
+
+aa_convert = {"A":0, "R":1, "N":2, "D":3, "C":4,
+              "E":5, "Q":6, "G":7, "H":8, "I":9,
+              "L":10, "K":11, "M":12, "F":13, "P":14,
+              "S":15,"T":16, "W":17, "Y":18, "V":19}
+
 INPUT_FILE = open("/home/severiano/harms_proj/files/hA6.tsv", "r")
 
 for line in INPUT_FILE:
     line = line.strip().split()
     label = float(line[1])
-    data = line[0]
+    for i in line[0]:
+        if i in aa_convert:
+            data.append(aa_convert[i]/19)
     if label <= -2:
         label = 1
         _xtrain_bound.append(data) #index this list to make train, test, develop
         _ytrain_bound.append(label)
-    if label > -2:
+    else:
         label = 0
         _xtrain_unbound.append(data)
         _ytrain_unbound.append(label)
@@ -58,4 +67,24 @@ print("test YES:", count_yes(y_test))
 print("test NO:", len(y_test) - count_yes(y_test))
 print("train YES:", count_yes(y_train))
 print("train NO:", len(y_train) - count_yes(y_train))
+
+print(x_test[0:10])
+print(x_train[0:10])
+
+# input_layer=tf.keras.layers.Input(shape=(12,))
+# nn = tf.keras.layers.Dense(25)(input_layer)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Dense(25)(nn)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Dense(25)(nn)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
+#
+# #A keras model is a way of going from one layer to the next
+# wine_model=tf.keras.models.Model(input_layer,output_layer)
+# wine_model.summary()
+# wine_model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+#
+# wine_model.fit(wd.x_train,wd.y_train,epochs=1000,validation_data=(wd.x_develop,wd.y_develop)) #Have Keras make a test/validation split for us
+
 INPUT_FILE .close()
