@@ -4,6 +4,10 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 import random
 from sys import version
+from keras import models
+from keras import layers
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 
 _xtrain_bound = []
 _ytrain_bound = []
@@ -79,40 +83,41 @@ def count_bound(current_list):
             current_count += 1
     return current_count
 
-print("test bound (1):", count_bound(y_test))
-print("test unbound (0):", len(y_test) - count_bound(y_test))
-print("train bound (1):", count_bound(y_train))
-print("train unbound (0):", len(y_train) - count_bound(y_train))
-print("develop bound (1):", count_bound(y_develop))
-print("develop unbound (0):", len(y_develop) - count_bound(y_develop))
+print("train num bound (num 1):", count_bound(y_train))
+print("train num unbound (num 0):", len(y_train) - count_bound(y_train))
+print("develop num bound (num 1):", count_bound(y_develop))
+print("develop num unbound (num 0):", len(y_develop) - count_bound(y_develop))
+print("test num bound (num 1):", count_bound(y_test))
+print("test num unbound (num 0):", len(y_test) - count_bound(y_test))
 
 print("x_train shape:", x_train.shape)
 print("y_train shape:", y_train.shape)
-print("x_test shape:", x_test.shape)
-print("y_test shape:", y_test.shape)
 print("x_develop shape:", x_develop.shape)
 print("y_develop shape:", y_develop.shape)
+print("x_test shape:", x_test.shape)
+print("y_test shape:", y_test.shape)
 
+
+# input_layer=tf.keras.layers.Input(shape=(12,))
+# nn = tf.keras.layers.Conv1D(100, 10, activation='relu')(input_layer)
+# output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
 
 # model_m = Sequential()
-# model_m.add(Reshape((TIME_PERIODS, num_sensors), input_shape=(input_shape,)))
-# model_m.add(Conv1D(100, 10, activation='relu', input_shape=(TIME_PERIODS, num_sensors)))
+# model.add(Conv1D(1, kernel_size=5, input_shape = (12,)))
 # model_m.add(Conv1D(100, 10, activation='relu'))
 # model_m.add(MaxPooling1D(3))
 # model_m.add(Conv1D(160, 10, activation='relu'))
 # model_m.add(Conv1D(160, 10, activation='relu'))
-# model_m.add(GlobalAveragePooling1D())
 # model_m.add(Dropout(0.5))
-# model_m.add(Dense(num_classes, activation='softmax'))
+# model_m.add(Dense(num_classes, activation='sigmoid'))
 # print(model_m.summary())
 
 input_layer=tf.keras.layers.Input(shape=(12,))
 nn = tf.keras.layers.Dense(25)(input_layer)
 nn = tf.keras.layers.LeakyReLU()(nn)
-nn = tf.keras.layers.Dropout(.5)(nn)
 nn = tf.keras.layers.Dense(25)(nn)
 nn = tf.keras.layers.LeakyReLU()(nn)
-nn = tf.keras.layers.Dropout(.5)(nn)
+nn = tf.keras.layers.Dropout(.9)(nn)
 nn = tf.keras.layers.Dense(25)(nn)
 nn = tf.keras.layers.LeakyReLU()(nn)
 output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
