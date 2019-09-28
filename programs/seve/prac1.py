@@ -11,8 +11,6 @@ _ytrain_bound = []
 _xtrain_unbound = []
 _ytrain_unbound = []
 
-data= []
-
 aa_convert = {"A":0, "R":1, "N":2, "D":3, "C":4,
               "E":5, "Q":6, "G":7, "H":8, "I":9,
               "L":10, "K":11, "M":12, "F":13, "P":14,
@@ -23,6 +21,7 @@ INPUT_FILE = open("/home/severiano/harms_proj/files/hA6.tsv", "r")
 for line in INPUT_FILE:
     line = line.strip().split()
     label = float(line[1])
+    data=[]
     for i in line[0]:
         if i in aa_convert:
             data.append(aa_convert[i]/19)
@@ -39,37 +38,61 @@ _xtrain_unbound = np.array(_xtrain_unbound)
 _ytrain_bound = np.array(_ytrain_bound)
 _ytrain_unbound = np.array(_ytrain_unbound)
 
-test_index=random.sample(range(len(_xtrain_bound)), (len(_xtrain_bound)//4))
-x_test_bound=_xtrain_bound[test_index]
-x_test_unbound=_xtrain_unbound[test_index]
-y_test_bound=_ytrain_bound[test_index]
-y_test_unbound=_ytrain_unbound[test_index]
-x_test=np.concatenate((x_test_bound,x_test_unbound), axis=0)
-y_test=np.concatenate((y_test_bound,y_test_unbound), axis=0)
-
-
-for i in test_index:
+#MAKE A LIST OF RANDOM NUMBERS FOR INDEXES
+#need to learn how to make two lists of random numbers
+#then to use all of these numbers to delete the index from original data
+test_develop_index=random.sample(range(len(_xtrain_bound)), (len(_xtrain_bound)//4))
+test_index=test_develop_index[:len(test_develop_index)//2]
+develop_index=test_develop_index[len(test_develop_index)//2:]
+#DELETE INDEXES FROM ORIGINAL DATA
+for i in test_develop_index:
     x_train_bound=np.delete(_xtrain_bound,i,0)
     x_train_unbound=np.delete(_xtrain_unbound,i,0)
     y_train_bound=np.delete(_ytrain_bound,i,0)
     y_train_unbound=np.delete(_ytrain_unbound,i,0)
+#THOSE NOT DELETED CONSTITUTE TRAINING SET
 x_train=np.concatenate((x_train_bound,x_train_unbound), axis=0)
 y_train=np.concatenate((y_train_bound,y_train_unbound), axis=0)
 
-def count_yes(current_list):
+#INDEXED ITEMS GO INTO TEST SET
+x_test_bound=_xtrain_bound[test_index]
+x_test_unbound=_xtrain_unbound[test_index]
+x_test=np.concatenate((x_test_bound,x_test_unbound), axis=0)
+
+y_test_bound=_ytrain_bound[test_index]
+y_test_unbound=_ytrain_unbound[test_index]
+y_test=np.concatenate((y_test_bound,y_test_unbound), axis=0)
+
+#INDEXED ITEMS GO INTO DEVELOP SET
+x_develop_bound=_xtrain_bound[develop_index]
+x_develop_unbound=_xtrain_unbound[develop_index]
+x_develop=np.concatenate((x_develop_bound,x_develop_unbound), axis=0)
+
+y_develop_bound=_ytrain_bound[develop_index]
+y_develop_unbound=_ytrain_unbound[develop_index]
+y_develop=np.concatenate((y_develop_bound,y_develop_unbound), axis=0)
+
+def count_bound(current_list):
     current_count = 0
     for i in range(len(current_list)):
         if(current_list[i] == 1):
             current_count += 1
     return current_count
 
-print("test YES:", count_yes(y_test))
-print("test NO:", len(y_test) - count_yes(y_test))
-print("train YES:", count_yes(y_train))
-print("train NO:", len(y_train) - count_yes(y_train))
+print("test bound (1):", count_bound(y_test))
+print("test unbound (0):", len(y_test) - count_bound(y_test))
+print("train bound (1):", count_bound(y_train))
+print("train unbound (0):", len(y_train) - count_bound(y_train))
+print("develop bound (1):", count_bound(y_develop))
+print("develop unbound (0):", len(y_develop) - count_bound(y_develop))
 
-print(x_test[0:10])
-print(x_train[0:10])
+print("x_train shape:", x_train.shape)
+print("y_train shape:", y_train.shape)
+print("x_test shape:", x_test.shape)
+print("y_test shape:", y_test.shape)
+print("x_develop shape:", x_develop.shape)
+print("y_develop shape:", y_develop.shape)
+
 
 # input_layer=tf.keras.layers.Input(shape=(12,))
 # nn = tf.keras.layers.Dense(25)(input_layer)
@@ -85,6 +108,6 @@ print(x_train[0:10])
 # wine_model.summary()
 # wine_model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
 #
-# wine_model.fit(wd.x_train,wd.y_train,epochs=1000,validation_data=(wd.x_develop,wd.y_develop)) #Have Keras make a test/validation split for us
+# wine_model.fit(x_train,y_train,epochs=1000,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
 
 INPUT_FILE .close()
