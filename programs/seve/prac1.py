@@ -94,20 +94,44 @@ print("x_develop shape:", x_develop.shape)
 print("y_develop shape:", y_develop.shape)
 
 
-# input_layer=tf.keras.layers.Input(shape=(12,))
-# nn = tf.keras.layers.Dense(25)(input_layer)
-# nn = tf.keras.layers.LeakyReLU()(nn)
-# nn = tf.keras.layers.Dense(25)(nn)
-# nn = tf.keras.layers.LeakyReLU()(nn)
-# nn = tf.keras.layers.Dense(25)(nn)
-# nn = tf.keras.layers.LeakyReLU()(nn)
-# output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
-#
-# #A keras model is a way of going from one layer to the next
-# wine_model=tf.keras.models.Model(input_layer,output_layer)
-# wine_model.summary()
-# wine_model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-#
-# wine_model.fit(x_train,y_train,epochs=1000,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+# model_m = Sequential()
+# model_m.add(Reshape((TIME_PERIODS, num_sensors), input_shape=(input_shape,)))
+# model_m.add(Conv1D(100, 10, activation='relu', input_shape=(TIME_PERIODS, num_sensors)))
+# model_m.add(Conv1D(100, 10, activation='relu'))
+# model_m.add(MaxPooling1D(3))
+# model_m.add(Conv1D(160, 10, activation='relu'))
+# model_m.add(Conv1D(160, 10, activation='relu'))
+# model_m.add(GlobalAveragePooling1D())
+# model_m.add(Dropout(0.5))
+# model_m.add(Dense(num_classes, activation='softmax'))
+# print(model_m.summary())
+
+input_layer=tf.keras.layers.Input(shape=(12,))
+nn = tf.keras.layers.Dense(25)(input_layer)
+nn = tf.keras.layers.LeakyReLU()(nn)
+nn = tf.keras.layers.Dropout(.5)(nn)
+nn = tf.keras.layers.Dense(25)(nn)
+nn = tf.keras.layers.LeakyReLU()(nn)
+nn = tf.keras.layers.Dropout(.5)(nn)
+nn = tf.keras.layers.Dense(25)(nn)
+nn = tf.keras.layers.LeakyReLU()(nn)
+output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
+
+#A keras model is a way of going from one layer to the next
+model=tf.keras.models.Model(input_layer,output_layer)
+model.summary()
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+
+model.fit(x_train,y_train,epochs=50,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+
+# def plot_history(history):
+#     plt.plot(history.history['loss'],label='Train')
+#     plt.plot(history.history['val_loss'],label='Develop')
+#     plt.xlabel('Epochs')
+#     plt.ylabel('Loss')
+#     plt.ylim((0,1.5*np.max(history.history['val_loss'])))
+#     plt.legend()
+#     plt.show()
+# plot_history(history)
 
 INPUT_FILE .close()
