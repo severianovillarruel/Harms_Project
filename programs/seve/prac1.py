@@ -76,6 +76,14 @@ y_develop_bound=_ytrain_bound[develop_index]
 y_develop_unbound=_ytrain_unbound[develop_index]
 y_develop=np.concatenate((y_develop_bound,y_develop_unbound), axis=0)
 
+x_train = x_train.reshape(x_train.shape[0], 12, 1)
+x_test = x_test.reshape(x_test.shape[0], 12, 1)
+x_develop = x_develop.reshape(x_develop.shape[0], 12, 1)
+
+# y_train = y_train.reshape(y_train.shape[0], 1)
+# y_test = y_test.reshape(y_test.shape[0], 1)
+# y_develop = y_develop.reshape(y_develop.shape[0], 1)
+
 def count_bound(current_list):
     current_count = 0
     for i in range(len(current_list)):
@@ -98,9 +106,27 @@ print("x_test shape:", x_test.shape)
 print("y_test shape:", y_test.shape)
 
 
-# input_layer=tf.keras.layers.Input(shape=(12,))
-# nn = tf.keras.layers.Conv1D(100, 10, activation='relu')(input_layer)
-# output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
+
+#CONVOLUTIONAL NET
+input_layer=tf.keras.layers.Input(shape=(12,1))
+nn = tf.keras.layers.Conv1D(3, 3, activation='relu')(input_layer)
+nn = tf.keras.layers.Dropout(.95)(nn)
+# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
+# nn=tf.keras.layers.MaxPooling1D(1)(nn)
+# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
+# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
+nn=tf.keras.layers.GlobalAveragePooling1D()(nn)
+nn = tf.keras.layers.Dense(25)(nn)
+nn = tf.keras.layers.LeakyReLU()(nn)
+nn = tf.keras.layers.Dropout(.25)(nn)
+nn = tf.keras.layers.Dense(25)(nn)
+nn = tf.keras.layers.LeakyReLU()(nn)
+output_layer=tf.keras.layers.Dense(1, activation='sigmoid')(nn)
+model=tf.keras.models.Model(input_layer,output_layer)
+model.summary()
+
+model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
 
 # model_m = Sequential()
 # model.add(Conv1D(1, kernel_size=5, input_shape = (12,)))
@@ -112,22 +138,24 @@ print("y_test shape:", y_test.shape)
 # model_m.add(Dense(num_classes, activation='sigmoid'))
 # print(model_m.summary())
 
-input_layer=tf.keras.layers.Input(shape=(12,))
-nn = tf.keras.layers.Dense(25)(input_layer)
-nn = tf.keras.layers.LeakyReLU()(nn)
-nn = tf.keras.layers.Dense(25)(nn)
-nn = tf.keras.layers.LeakyReLU()(nn)
-nn = tf.keras.layers.Dropout(.9)(nn)
-nn = tf.keras.layers.Dense(25)(nn)
-nn = tf.keras.layers.LeakyReLU()(nn)
-output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
 
-#A keras model is a way of going from one layer to the next
-model=tf.keras.models.Model(input_layer,output_layer)
-model.summary()
-model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+#DENSE NEURAL NET
+# input_layer=tf.keras.layers.Input(shape=(12,))
+# nn = tf.keras.layers.Dense(25)(input_layer)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Dense(25)(nn)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Dropout(.9)(nn)
+# nn = tf.keras.layers.Dense(25)(nn)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
 
-model.fit(x_train,y_train,epochs=50,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+# model=tf.keras.models.Model(input_layer,output_layer)
+# model.summary()
+# model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+#
+# model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+#
 
 # def plot_history(history):
 #     plt.plot(history.history['loss'],label='Train')

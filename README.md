@@ -1,2 +1,2 @@
-# Harms_Project
-Harms project machine learning
+use machine learning to predict peptide binding from sequences converted to 
+physiochemical properties
