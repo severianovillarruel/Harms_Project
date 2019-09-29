@@ -8,6 +8,7 @@ from keras import models
 from keras import layers
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+import json
 
 _xtrain_bound = []
 _ytrain_bound = []
@@ -15,20 +16,34 @@ _ytrain_bound = []
 _xtrain_unbound = []
 _ytrain_unbound = []
 
+INPUT_FILE = open("/home/severiano/harms_proj/files/hA6.tsv", "r")
+JSON_FILE = open("/home/severiano/harms_proj/data/aaindex-pca.json", "r")
+data = json.load(JSON_FILE)
+
 aa_convert = {"A":0, "R":1, "N":2, "D":3, "C":4,
               "E":5, "Q":6, "G":7, "H":8, "I":9,
               "L":10, "K":11, "M":12, "F":13, "P":14,
               "S":15,"T":16, "W":17, "Y":18, "V":19}
-
-INPUT_FILE = open("/home/severiano/harms_proj/files/hA6.tsv", "r")
+pc1 = data["aaindex_pca_1"]["values"]
+pc2 = data["aaindex_pca_2"]["values"]
 
 for line in INPUT_FILE:
     line = line.strip().split()
     label = float(line[1])
-    data=[]
+    data = []
+    aa_dict1 = []
+    aa_dict2 = []
+    aa_dict3 = []
     for i in line[0]:
         if i in aa_convert:
-            data.append(aa_convert[i]/19)
+            aa_dict1.append(aa_convert[i]/19)
+        if i in pc1:
+            aa_dict2.append(pc1[i])
+        if i in pc2:
+            aa_dict3.append(pc2[i])
+    data.append(aa_dict1)
+    data.append(aa_dict2)
+    data.append(aa_dict3)
     if label <= -2:
         label = 1
         _xtrain_bound.append(data) #index this list to make train, test, develop
@@ -43,17 +58,19 @@ _ytrain_bound = np.array(_ytrain_bound)
 _ytrain_unbound = np.array(_ytrain_unbound)
 
 #MAKE A LIST OF RANDOM NUMBERS FOR INDEXES
-#need to learn how to make two lists of random numbers
-#then to use all of these numbers to delete the index from original data
 test_develop_index=random.sample(range(len(_xtrain_bound)), (len(_xtrain_bound)//4))
 test_index=test_develop_index[:len(test_develop_index)//2]
 develop_index=test_develop_index[len(test_develop_index)//2:]
+
 #DELETE INDEXES FROM ORIGINAL DATA
 for i in test_develop_index:
     x_train_bound=np.delete(_xtrain_bound,i,0)
     x_train_unbound=np.delete(_xtrain_unbound,i,0)
     y_train_bound=np.delete(_ytrain_bound,i,0)
     y_train_unbound=np.delete(_ytrain_unbound,i,0)
+len_bound = len(x_train_bound)
+x_train_unbound = x_train_unbound[:len_bound]
+y_train_unbound = y_train_unbound[:len_bound]
 #THOSE NOT DELETED CONSTITUTE TRAINING SET
 x_train=np.concatenate((x_train_bound,x_train_unbound), axis=0)
 y_train=np.concatenate((y_train_bound,y_train_unbound), axis=0)
@@ -76,10 +93,11 @@ y_develop_bound=_ytrain_bound[develop_index]
 y_develop_unbound=_ytrain_unbound[develop_index]
 y_develop=np.concatenate((y_develop_bound,y_develop_unbound), axis=0)
 
-x_train = x_train.reshape(x_train.shape[0], 12, 1)
-x_test = x_test.reshape(x_test.shape[0], 12, 1)
-x_develop = x_develop.reshape(x_develop.shape[0], 12, 1)
-
+#CHANGE WHEN USING CONVOLUTIONAL OR DENSE
+x_train = x_train.reshape(x_train.shape[0], 3, 12, 1)
+x_test = x_test.reshape(x_test.shape[0], 3, 12, 1)
+x_develop = x_develop.reshape(x_develop.shape[0], 3, 12, 1)
+#
 # y_train = y_train.reshape(y_train.shape[0], 1)
 # y_test = y_test.reshape(y_test.shape[0], 1)
 # y_develop = y_develop.reshape(y_develop.shape[0], 1)
@@ -108,15 +126,20 @@ print("y_test shape:", y_test.shape)
 
 
 #CONVOLUTIONAL NET
-input_layer=tf.keras.layers.Input(shape=(12,1))
-nn = tf.keras.layers.Conv1D(3, 3, activation='relu')(input_layer)
-nn = tf.keras.layers.Dropout(.95)(nn)
+input_layer=tf.keras.layers.Input(shape=(3,12,1))
+nn = tf.keras.layers.Convolution2D(64, (4,4),strides=2,padding='same')(input_layer)
+nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Conv1D(20, 3, activation='relu')(input_layer)
+nn = tf.keras.layers.Dropout(.9)(nn)
+nn = tf.keras.layers.Convolution2D(64, (4,4),strides=2,padding='same')(nn)
+nn = tf.keras.layers.LeakyReLU()(nn)
 # nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
 # nn=tf.keras.layers.MaxPooling1D(1)(nn)
 # nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
 # nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
-nn=tf.keras.layers.GlobalAveragePooling1D()(nn)
-nn = tf.keras.layers.Dense(25)(nn)
+# nn = tf.keras.layers.GlobalAveragePooling1D()(nn)
+flat = tf.keras.layers.Flatten()(nn)
+nn = tf.keras.layers.Dense(25)(flat)
 nn = tf.keras.layers.LeakyReLU()(nn)
 nn = tf.keras.layers.Dropout(.25)(nn)
 nn = tf.keras.layers.Dense(25)(nn)
@@ -126,17 +149,8 @@ model=tf.keras.models.Model(input_layer,output_layer)
 model.summary()
 
 model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+model.fit(x_train,y_train,epochs=10,batch_size=32,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
 
-# model_m = Sequential()
-# model.add(Conv1D(1, kernel_size=5, input_shape = (12,)))
-# model_m.add(Conv1D(100, 10, activation='relu'))
-# model_m.add(MaxPooling1D(3))
-# model_m.add(Conv1D(160, 10, activation='relu'))
-# model_m.add(Conv1D(160, 10, activation='relu'))
-# model_m.add(Dropout(0.5))
-# model_m.add(Dense(num_classes, activation='sigmoid'))
-# print(model_m.summary())
 
 
 #DENSE NEURAL NET
@@ -149,13 +163,13 @@ model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have
 # nn = tf.keras.layers.Dense(25)(nn)
 # nn = tf.keras.layers.LeakyReLU()(nn)
 # output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
-
+#
 # model=tf.keras.models.Model(input_layer,output_layer)
 # model.summary()
 # model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
 #
 # model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
-#
+
 
 # def plot_history(history):
 #     plt.plot(history.history['loss'],label='Train')
@@ -168,3 +182,4 @@ model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have
 # plot_history(history)
 
 INPUT_FILE .close()
+JSON_FILE.close()
