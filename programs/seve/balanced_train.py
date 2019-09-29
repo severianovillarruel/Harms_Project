@@ -149,9 +149,9 @@ model=tf.keras.models.Model(input_layer,output_layer)
 model.summary()
 
 model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-model.fit(x_train,y_train,epochs=10,batch_size=32,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
-
-
+history = model.fit(x_train,y_train,epochs=10,batch_size=32,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+predict = model.predict(x_test)
+print(predict)
 
 #DENSE NEURAL NET
 # input_layer=tf.keras.layers.Input(shape=(12,))
