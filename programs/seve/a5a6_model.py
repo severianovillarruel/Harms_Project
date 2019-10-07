@@ -10,9 +10,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import json
 
-INPUT_FILE = open("../..//files/altAll.tsv", "r")
+INPUT_FILE = open("../../files/aA5A6.tsv", "r")
 JSON_FILE = open("../../data/aaindex-pca.json", "r")
-
+TEST_FILE = open("../../files/random_12mers.txt","r")
 data = json.load(JSON_FILE)
 
 _xtrain_bound = []
@@ -27,8 +27,6 @@ aa_convert = {"A":0, "R":1, "N":2, "D":3, "C":4,
               "S":15,"T":16, "W":17, "Y":18, "V":19}
 pc1 = data["aaindex_pca_1"]["values"]
 pc2 = data["aaindex_pca_2"]["values"]
-
-################################################################################
 
 for line in INPUT_FILE:
     line = line.strip().split()
@@ -100,6 +98,10 @@ y_develop=np.concatenate((y_develop_bound,y_develop_unbound), axis=0)
 x_train = x_train.reshape(x_train.shape[0], 3, 12, 1)
 x_test = x_test.reshape(x_test.shape[0], 3, 12, 1)
 x_develop = x_develop.reshape(x_develop.shape[0], 3, 12, 1)
+#
+# y_train = y_train.reshape(y_train.shape[0], 1)
+# y_test = y_test.reshape(y_test.shape[0], 1)
+# y_develop = y_develop.reshape(y_develop.shape[0], 1)
 
 def count_bound(current_list):
     current_count = 0
@@ -126,9 +128,15 @@ print("y_test shape:", y_test.shape)
 input_layer=tf.keras.layers.Input(shape=(3,12,1))
 nn = tf.keras.layers.Convolution2D(64, (4,4),strides=2,padding='same')(input_layer)
 nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Conv1D(20, 3, activation='relu')(input_layer)
 nn = tf.keras.layers.Dropout(.9)(nn)
 nn = tf.keras.layers.Convolution2D(64, (4,4),strides=2,padding='same')(nn)
 nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
+# nn=tf.keras.layers.MaxPooling1D(1)(nn)
+# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
+# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
+# nn = tf.keras.layers.GlobalAveragePooling1D()(nn)
 flat = tf.keras.layers.Flatten()(nn)
 nn = tf.keras.layers.Dense(25)(flat)
 nn = tf.keras.layers.LeakyReLU()(nn)
@@ -144,7 +152,24 @@ history = alt_model.fit(x_train,y_train,epochs=10,batch_size=32,validation_data=
 predict = alt_model.predict(x_test)
 print(predict)
 
-#HISTORY PLOTS
+#DENSE NEURAL NET
+# input_layer=tf.keras.layers.Input(shape=(12,))
+# nn = tf.keras.layers.Dense(25)(input_layer)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Dense(25)(nn)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# nn = tf.keras.layers.Dropout(.9)(nn)
+# nn = tf.keras.layers.Dense(25)(nn)
+# nn = tf.keras.layers.LeakyReLU()(nn)
+# output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
+#
+# model=tf.keras.models.Model(input_layer,output_layer)
+# model.summary()
+# model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+#
+# model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+
+
 def plot_history(history):
     plt.plot(history.history['loss'],label='Train')
     plt.plot(history.history['val_loss'],label='Develop')
@@ -155,15 +180,7 @@ def plot_history(history):
     plt.savefig('plot.png')
 plot_history(history)
 
-INPUT_FILE.close()
+alt_model.save('aA5A6.model')
+
+INPUT_FILE .close()
 JSON_FILE.close()
-
-######################################################################################
-
-TEST_FILE_1 = open("../../files/random_12mers.txt","r")
-TEST_FILE_2 = open("../../files/test_predictions.txt","r")
-
-alt_model.save('alt.model')
-
-TEST_FILE_1.close()
-TEST_FILE_2.close()

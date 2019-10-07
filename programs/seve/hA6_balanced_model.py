@@ -10,8 +10,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import json
 
-INPUT_FILE = open("/home/severiano/harms_proj/files/hA6.tsv", "r")
-JSON_FILE = open("/home/severiano/harms_proj/data/aaindex-pca.json", "r")
+INPUT_FILE = open("../../files/hA6.tsv", "r")
+JSON_FILE = open("../../data/aaindex-pca.json", "r")
 
 data = json.load(JSON_FILE)
 
