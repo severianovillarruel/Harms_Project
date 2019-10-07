@@ -10,15 +10,16 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import json
 
+INPUT_FILE = open("/home/severiano/harms_proj/files/hA6.tsv", "r")
+JSON_FILE = open("/home/severiano/harms_proj/data/aaindex-pca.json", "r")
+
+data = json.load(JSON_FILE)
+
 _xtrain_bound = []
 _ytrain_bound = []
 
 _xtrain_unbound = []
 _ytrain_unbound = []
-
-INPUT_FILE = open("/home/severiano/harms_proj/files/hA6.tsv", "r")
-JSON_FILE = open("/home/severiano/harms_proj/data/aaindex-pca.json", "r")
-data = json.load(JSON_FILE)
 
 aa_convert = {"A":0, "R":1, "N":2, "D":3, "C":4,
               "E":5, "Q":6, "G":7, "H":8, "I":9,
@@ -46,7 +47,7 @@ for line in INPUT_FILE:
     data.append(aa_dict3)
     if label <= -2:
         label = 1
-        _xtrain_bound.append(data) #index this list to make train, test, develop
+        _xtrain_bound.append(data)
         _ytrain_bound.append(label)
     else:
         label = 0
@@ -58,19 +59,19 @@ _ytrain_bound = np.array(_ytrain_bound)
 _ytrain_unbound = np.array(_ytrain_unbound)
 
 #MAKE A LIST OF RANDOM NUMBERS FOR INDEXES
-test_develop_index=random.sample(range(len(_xtrain_bound)), (len(_xtrain_bound)//4))
+test_develop_index=random.sample(range(len(_xtrain_bound)), len(_xtrain_bound)//4)
 test_index=test_develop_index[:len(test_develop_index)//2]
 develop_index=test_develop_index[len(test_develop_index)//2:]
-
+print(len(test_develop_index))
 #DELETE INDEXES FROM ORIGINAL DATA
 for i in test_develop_index:
     x_train_bound=np.delete(_xtrain_bound,i,0)
     x_train_unbound=np.delete(_xtrain_unbound,i,0)
     y_train_bound=np.delete(_ytrain_bound,i,0)
     y_train_unbound=np.delete(_ytrain_unbound,i,0)
-len_bound = len(x_train_bound)
-x_train_unbound = x_train_unbound[:len_bound]
-y_train_unbound = y_train_unbound[:len_bound]
+#MAKE UNBOUND THE LENGTH OF BOUND
+x_train_unbound = x_train_unbound[:(len(x_train_bound))]
+y_train_unbound = y_train_unbound[:(len(x_train_bound))]
 #THOSE NOT DELETED CONSTITUTE TRAINING SET
 x_train=np.concatenate((x_train_bound,x_train_unbound), axis=0)
 y_train=np.concatenate((y_train_bound,y_train_unbound), axis=0)
@@ -97,11 +98,8 @@ y_develop=np.concatenate((y_develop_bound,y_develop_unbound), axis=0)
 x_train = x_train.reshape(x_train.shape[0], 3, 12, 1)
 x_test = x_test.reshape(x_test.shape[0], 3, 12, 1)
 x_develop = x_develop.reshape(x_develop.shape[0], 3, 12, 1)
-#
-# y_train = y_train.reshape(y_train.shape[0], 1)
-# y_test = y_test.reshape(y_test.shape[0], 1)
-# y_develop = y_develop.reshape(y_develop.shape[0], 1)
 
+print('x_test[0]',x_test[0])
 def count_bound(current_list):
     current_count = 0
     for i in range(len(current_list)):
@@ -123,63 +121,49 @@ print("y_develop shape:", y_develop.shape)
 print("x_test shape:", x_test.shape)
 print("y_test shape:", y_test.shape)
 
-
-
 #CONVOLUTIONAL NET
 input_layer=tf.keras.layers.Input(shape=(3,12,1))
 nn = tf.keras.layers.Convolution2D(64, (4,4),strides=2,padding='same')(input_layer)
 nn = tf.keras.layers.LeakyReLU()(nn)
-# nn = tf.keras.layers.Conv1D(20, 3, activation='relu')(input_layer)
 nn = tf.keras.layers.Dropout(.9)(nn)
 nn = tf.keras.layers.Convolution2D(64, (4,4),strides=2,padding='same')(nn)
 nn = tf.keras.layers.LeakyReLU()(nn)
-# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
-# nn=tf.keras.layers.MaxPooling1D(1)(nn)
-# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
-# nn = tf.keras.layers.Conv1D(12, 1, activation='relu')(nn)
-# nn = tf.keras.layers.GlobalAveragePooling1D()(nn)
 flat = tf.keras.layers.Flatten()(nn)
 nn = tf.keras.layers.Dense(25)(flat)
 nn = tf.keras.layers.LeakyReLU()(nn)
 nn = tf.keras.layers.Dropout(.25)(nn)
 nn = tf.keras.layers.Dense(25)(nn)
 nn = tf.keras.layers.LeakyReLU()(nn)
-output_layer=tf.keras.layers.Dense(1, activation='sigmoid')(nn)
-model=tf.keras.models.Model(input_layer,output_layer)
-model.summary()
+output_layer = tf.keras.layers.Dense(1, activation='sigmoid')(nn)
+hA6_model = tf.keras.models.Model(input_layer,output_layer)
+hA6_model.summary()
 
-model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-history = model.fit(x_train,y_train,epochs=10,batch_size=32,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
-predict = model.predict(x_test)
+hA6_model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+history = hA6_model.fit(x_train,y_train,epochs=10,batch_size=32,validation_data=(x_develop,y_develop))
+predict = hA6_model.predict(x_test)
 print(predict)
 
-#DENSE NEURAL NET
-# input_layer=tf.keras.layers.Input(shape=(12,))
-# nn = tf.keras.layers.Dense(25)(input_layer)
-# nn = tf.keras.layers.LeakyReLU()(nn)
-# nn = tf.keras.layers.Dense(25)(nn)
-# nn = tf.keras.layers.LeakyReLU()(nn)
-# nn = tf.keras.layers.Dropout(.9)(nn)
-# nn = tf.keras.layers.Dense(25)(nn)
-# nn = tf.keras.layers.LeakyReLU()(nn)
-# output_layer = tf.keras.layers.Dense(1,activation='sigmoid')(nn)
-#
-# model=tf.keras.models.Model(input_layer,output_layer)
-# model.summary()
-# model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-#
-# model.fit(x_train,y_train,epochs=10,validation_data=(x_develop,y_develop)) #Have Keras make a test/validation split for us
+count = 0
+for i in range(len(predict)):
+    print(predict[i])
+    print(y_test[i])
+    if(i < .3):
+        count += 1
 
+print((count/988)*100)
 
-# def plot_history(history):
-#     plt.plot(history.history['loss'],label='Train')
-#     plt.plot(history.history['val_loss'],label='Develop')
-#     plt.xlabel('Epochs')
-#     plt.ylabel('Loss')
-#     plt.ylim((0,1.5*np.max(history.history['val_loss'])))
-#     plt.legend()
-#     plt.show()
-# plot_history(history)
+#HISTORY PLOTS
+def plot_history(history):
+    plt.plot(history.history['loss'],label='Train')
+    plt.plot(history.history['val_loss'],label='Develop')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.ylim((0,1.5*np.max(history.history['val_loss'])))
+    plt.legend()
+    plt.savefig('plot.png')
+plot_history(history)
 
-INPUT_FILE .close()
+hA6_model.save('hA6.model')
+
+INPUT_FILE.close()
 JSON_FILE.close()
