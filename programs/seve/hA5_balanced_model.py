@@ -10,8 +10,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import json
 
-INPUT_FILE = open("/home/severiano/harms_proj/files/hA5.tsv", "r")
-JSON_FILE = open("/home/severiano/harms_proj/data/aaindex-pca.json", "r")
+INPUT_FILE = open("../../files/hA5.tsv", "r")
+JSON_FILE = open("../../data/aaindex-pca.json", "r")
 
 data = json.load(JSON_FILE)
 
@@ -158,9 +158,11 @@ JSON_FILE.close()
 
 ######################################################################################
 
-TEST_FILE_1 = open("/home/severiano/harms_proj/files/random_12mers.txt","r")
-TEST_FILE_2 = open("/home/severiano/harms_proj/files/test_predictions.txt","r")
+TEST_FILE_1 = open("../../files/random_12mers.txt","r")
+TEST_FILE_2 = open("../../files/test_predictions.txt","r")
 
+
+hA5_model.save('hA5.model')
 
 TEST_FILE_1.close()
 TEST_FILE_2.close()

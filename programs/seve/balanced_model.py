@@ -10,9 +10,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import json
 
-INPUT_FILE = open("/home/severiano/harms_proj/files/alt.tsv", "r")
-JSON_FILE = open("/home/severiano/harms_proj/data/aaindex-pca.json", "r")
-TEST_FILE = open("/home/severiano/harms_proj/files/random_12mers.txt","r")
+INPUT_FILE = open("../../files/altAll.tsv", "r")
+JSON_FILE = open("../../data/aaindex-pca.json", "r")
+TEST_FILE = open("../../files/random_12mers.txt","r")
 data = json.load(JSON_FILE)
 
 _xtrain_bound = []
@@ -179,6 +179,8 @@ def plot_history(history):
     plt.legend()
     plt.savefig('plot.png')
 plot_history(history)
+
+alt_model.save('balanced.model')
 
 INPUT_FILE .close()
 JSON_FILE.close()
