@@ -5,8 +5,8 @@ from tensorflow.keras import layers
 import json
 import numpy as np
 
-TEST_FILE = open("/home/severiano/harms_proj/files/test_predictions.txt","r")
-JSON_FILE = open("/home/severiano/harms_proj/data/aaindex-pca.json", "r")
+TEST_FILE = open("../../files/test_predictions.txt","r")
+JSON_FILE = open("../../data/aaindex-pca.json", "r")
 
 data = json.load(JSON_FILE)
 
