@@ -17,8 +17,15 @@ aa_convert = {"A":0, "R":1, "N":2, "D":3, "C":4,
 pc1 = data["aaindex_pca_1"]["values"]
 pc2 = data["aaindex_pca_2"]["values"]
 
+#LOAD MODELS
 hA6_model = keras.models.load_model('hA6.model')
 hA6_model.summary()
+hA5_model = keras.models.load_model('hA5.model')
+hA5_model.summary()
+aA5A6_model = keras.models.load_model('aA5A6.model')
+aA5A6_model.summary()
+alt_model = keras.models.load_model('alt.model')
+alt_model.summary()
 
 rand_test_lst = []
 for line in RAND_FILE:
@@ -41,14 +48,39 @@ for line in RAND_FILE:
 
 rand_test_lst = np.array(rand_test_lst)
 rand_test_lst = rand_test_lst.reshape(rand_test_lst.shape[0], 3, 12, 1)
-predict = hA6_model.predict(rand_test_lst)
 
-count = 0
-for i in predict:
+ha6_predict = hA6_model.predict(rand_test_lst)
+ha5_predict = hA5_model.predict(rand_test_lst)
+a5a6_predict = aA5A6_model.predict(rand_test_lst)
+alt_predict = alt_model.predict(rand_test_lst)
+
+count_5 = 0
+for i in ha5_predict:
     if(i < .2):
-        count += 1
+        count_5 += 1
 
-print(count/10000*100)
+print("for the hA5 model ",count_5/1000*100, "% bound")
+
+count_6 = 0
+for i in ha6_predict:
+    if(i < .2):
+        count_6 += 1
+
+print("for the hA6 model ",count_6/1000*100, "% bound")
+
+count_56 = 0
+for i in a5a6_predict:
+    if(i < .2):
+        count_56 += 1
+
+print("for the A5A6 model ",count_56/1000*100, "% bound")
+
+count_alt = 0
+for i in alt_predict:
+    if(i < .2):
+        count_alt += 1
+
+print("for the alt model",count_alt/1000*100, "% bound")
 
 JSON_FILE.close()
 RAND_FILE.close()

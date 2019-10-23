@@ -177,7 +177,7 @@ def plot_history(history):
     plt.ylabel('Loss')
     plt.ylim((0,1.5*np.max(history.history['val_loss'])))
     plt.legend()
-    plt.savefig('plot.png')
+    plt.savefig('plot_aA5A6.png')
 plot_history(history)
 
 alt_model.save('aA5A6.model')

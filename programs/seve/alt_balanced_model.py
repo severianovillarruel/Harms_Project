@@ -44,9 +44,7 @@ for line in INPUT_FILE:
             aa_dict2.append(pc1[i])
         if i in pc2:
             aa_dict3.append(pc2[i])
-    data.append(aa_dict1)
-    data.append(aa_dict2)
-    data.append(aa_dict3)
+    data.append(aa_dict1, aa_dict2, aa_dict3)
     if label <= -2:
         label = 1
         _xtrain_bound.append(data)
@@ -152,7 +150,7 @@ def plot_history(history):
     plt.ylabel('Loss')
     plt.ylim((0,1.5*np.max(history.history['val_loss'])))
     plt.legend()
-    plt.savefig('plot.png')
+    plt.savefig('plot_alt.png')
 plot_history(history)
 
 INPUT_FILE.close()
